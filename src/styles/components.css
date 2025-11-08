@@ -1,0 +1,180 @@
+@reference "tailwindcss";
+
+/* Layout */
+.page-container {
+	@apply min-h-screen bg-white;
+}
+
+.main-content {
+	@apply max-w-7xl mx-auto px-4 md:px-8 py-8 md:py-12 relative;
+}
+
+.desktop-layout {
+	@apply hidden md:block;
+}
+
+.mobile-layout {
+	@apply md:hidden space-y-8;
+}
+
+/* Header */
+.header {
+	@apply sticky top-0 z-50 bg-white border-b border-gray-200 px-4 md:px-8 py-4;
+}
+
+.header-container {
+	@apply max-w-7xl mx-auto flex items-center justify-between;
+}
+
+.header-brand {
+	@apply text-gray-900 font-medium;
+}
+
+.header-nav {
+	@apply hidden md:flex gap-6 text-gray-700;
+}
+
+.header-nav-link {
+	@apply hover:text-gray-900 transition-colors;
+}
+
+.header-actions {
+	@apply flex items-center gap-4;
+}
+
+.header-time {
+	@apply hidden md:block text-sm text-gray-500;
+}
+
+.header-button {
+	@apply px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition-colors text-sm;
+}
+
+/* Sidebar Columns */
+.sidebar-column {
+	@apply md:fixed md:overflow-y-auto md:bg-white md:z-30 md:px-4 border-r border-gray-200 pr-8;
+}
+
+.sidebar-column-right {
+	@apply md:fixed md:overflow-y-auto md:bg-white md:z-30 md:px-4 border-l border-gray-200 pl-8;
+}
+
+.main-column {
+	@apply md:mx-auto md:max-w-[50%];
+}
+
+/* Brand Component */
+.brand-container {
+	@apply flex flex-col h-full;
+}
+
+.brand-title {
+	@apply text-4xl md:text-5xl font-bold text-gray-900 mb-8;
+}
+
+.brand-social {
+	@apply flex flex-col gap-4 mb-8;
+}
+
+.brand-social-link {
+	@apply text-gray-700 hover:text-gray-900 transition-colors;
+}
+
+.brand-social-icon {
+	@apply w-6 h-6;
+}
+
+.brand-nav {
+	@apply flex flex-col;
+}
+
+.brand-nav-link {
+	@apply py-3 text-gray-700 hover:text-gray-900 transition-colors border-b border-gray-200;
+}
+
+/* Portfolio Component */
+.portfolio-container {
+	@apply flex flex-col h-full;
+}
+
+.portfolio-intro {
+	@apply mb-12;
+}
+
+.portfolio-text {
+	@apply text-lg md:text-xl text-gray-700 leading-relaxed;
+}
+
+.portfolio-text-bold {
+	@apply font-bold;
+}
+
+.portfolio-section {
+	@apply mt-auto;
+}
+
+.portfolio-title {
+	@apply text-2xl font-semibold text-gray-900 mb-8;
+}
+
+.portfolio-count {
+	@apply text-gray-500 font-normal;
+}
+
+.portfolio-grid {
+	@apply grid grid-cols-1 gap-6;
+}
+
+.portfolio-item {
+	@apply aspect-video bg-gradient-to-br from-teal-200 via-pink-200 to-white rounded-lg overflow-hidden;
+}
+
+/* About Component */
+.about-container {
+	@apply flex flex-col h-full;
+}
+
+.about-status {
+	@apply text-gray-700 mb-6;
+}
+
+.about-profile {
+	@apply mb-8;
+}
+
+.about-avatar {
+	@apply w-32 h-32 md:w-40 md:h-40 rounded-lg bg-gradient-to-br from-teal-100 to-teal-200 mb-4 overflow-hidden;
+}
+
+.about-avatar-placeholder {
+	@apply w-full h-full bg-teal-200 flex items-center justify-center text-teal-600;
+}
+
+.about-avatar-icon {
+	@apply w-16 h-16;
+}
+
+.about-info {
+	@apply space-y-1 mb-2;
+}
+
+.about-title {
+	@apply text-gray-900 font-medium;
+}
+
+.about-location {
+	@apply text-gray-700;
+}
+
+.about-year {
+	@apply text-gray-500 text-sm;
+}
+
+.about-contact {
+	@apply mt-auto space-y-2 text-gray-700;
+}
+
+.about-copyright {
+	@apply text-sm text-gray-500 mt-4;
+}
+

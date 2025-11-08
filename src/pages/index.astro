@@ -1,0 +1,92 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Brand from '../components/Brand.astro';
+import Portfolio from '../components/Portfolio.astro';
+import About from '../components/About.astro';
+import Header from '../components/Header.astro';
+---
+
+<Layout>
+	<div class="page-container">
+		<!-- Header -->
+		<Header />
+
+		<!-- Main Content - Three Column Layout -->
+		<main class="main-content">
+			<!-- Desktop Layout -->
+			<div class="desktop-layout">
+				<!-- Left Column - Brand -->
+				<aside class="sidebar-column" id="left-column">
+					<Brand />
+				</aside>
+
+				<!-- Main Column - Portfolio -->
+				<section class="main-column" id="main-column">
+					<Portfolio />
+				</section>
+
+				<!-- Right Column - About -->
+				<aside class="sidebar-column-right" id="right-column">
+					<About />
+				</aside>
+			</div>
+
+			<!-- Mobile Layout -->
+			<div class="mobile-layout">
+				<Brand />
+				<Portfolio />
+				<About />
+			</div>
+		</main>
+	</div>
+</Layout>
+
+<script>
+	// Calculate exact header height and set fixed position for columns
+	if (typeof window !== 'undefined') {
+		const header = document.querySelector('header') as HTMLElement;
+		const leftColumn = document.querySelector('#left-column') as HTMLElement;
+		const rightColumn = document.querySelector('#right-column') as HTMLElement;
+		const main = document.querySelector('main') as HTMLElement;
+		
+		const mainColumn = document.querySelector('#main-column') as HTMLElement;
+		
+		if (header && leftColumn && rightColumn && main && mainColumn) {
+			const updateFixedPosition = () => {
+				// Only update on desktop
+				if (window.innerWidth < 768) return;
+				
+				const headerHeight = header.offsetHeight;
+				const mainRect = main.getBoundingClientRect();
+				const leftOffset = mainRect.left;
+				const rightOffset = window.innerWidth - mainRect.right;
+				
+				// Calculate column width (25% of main container, max 320px)
+				const columnWidth = Math.min(mainRect.width * 0.25, 320);
+				
+				// Left column
+				leftColumn.style.top = `${headerHeight}px`;
+				leftColumn.style.left = `${leftOffset}px`;
+				leftColumn.style.width = `${columnWidth}px`;
+				leftColumn.style.height = `calc(100vh - ${headerHeight}px)`;
+				
+				// Right column
+				rightColumn.style.top = `${headerHeight}px`;
+				rightColumn.style.right = `${rightOffset}px`;
+				rightColumn.style.width = `${columnWidth}px`;
+				rightColumn.style.height = `calc(100vh - ${headerHeight}px)`;
+				
+				// Main column - add margins to account for fixed columns
+				mainColumn.style.marginLeft = `${columnWidth}px`;
+				mainColumn.style.marginRight = `${columnWidth}px`;
+			};
+			
+			// Use requestAnimationFrame to ensure DOM is ready
+			requestAnimationFrame(() => {
+				updateFixedPosition();
+				window.addEventListener('resize', updateFixedPosition);
+				window.addEventListener('scroll', updateFixedPosition);
+			});
+		}
+	}
+</script>
