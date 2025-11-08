@@ -142,8 +142,18 @@
 	@apply mb-8;
 }
 
+/* Row wrapper for each person: stacked on mobile, side-by-side on md+ */
+.about-row {
+	@apply flex flex-col md:flex-row items-center gap-6 mb-8;
+}
+
+/* Mirror the row on md+ (used for first person to put avatar on the right) */
+.about-row--mirror {
+	@apply md:flex-row-reverse;
+}
+
 .about-avatar {
-	@apply w-32 h-32 md:w-40 md:h-40 rounded-lg bg-gradient-to-br from-teal-100 to-teal-200 mb-4 overflow-hidden;
+	@apply w-32 h-32 md:w-40 md:h-40 rounded-lg bg-gradient-to-br from-teal-100 to-teal-200 mb-4 md:mb-0 overflow-hidden flex-shrink-0;
 }
 
 .about-avatar-placeholder {
@@ -155,7 +165,7 @@
 }
 
 .about-info {
-	@apply space-y-1 mb-2;
+	@apply space-y-1 mb-2 md:mb-0 md:w-1/2;
 }
 
 .about-title {

@@ -1,0 +1,285 @@
+---
+---
+
+
+<script>
+	if (typeof window !== 'undefined') {
+		// Hide page content initially
+		document.documentElement.style.opacity = '0';
+		
+		// Function to split text into words and wrap each word
+		const splitTextIntoWords = (element) => {
+			const text = element.textContent || '';
+			element.innerHTML = '';
+			
+			// Split by spaces and punctuation, keeping punctuation with words
+			const words = text.split(/(\s+)/).filter(word => word.trim().length > 0);
+			
+			words.forEach((word, index) => {
+				const span = document.createElement('span');
+				span.textContent = word;
+				span.className = 'word-animate';
+				span.style.opacity = '0';
+				span.style.filter = 'blur(10px)';
+				span.style.transition = 'opacity 0.375s cubic-bezier(0.44, 0, 0.56, 1), filter 0.375s cubic-bezier(0.44, 0, 0.56, 1)';
+				span.style.display = 'inline-block';
+				element.appendChild(span);
+				
+				// Add space after word if it's not the last word
+				if (index < words.length - 1) {
+					const space = document.createTextNode(' ');
+					element.appendChild(space);
+				}
+			});
+		};
+		
+		// Function to animate elements with staggered delays
+		const animateElements = () => {
+			// Hide header initially to prevent it from showing
+			const header = document.querySelector('header');
+			if (header) {
+				header.style.opacity = '0';
+				header.style.visibility = 'visible'; // Keep it in layout but invisible
+			}
+			
+			// Animate "Hello! I'm Maelle" word by word (in Brand component)
+			const brandTitle = document.querySelector('.brand-title');
+			let brandTitleWordsCount = 0;
+			if (brandTitle) {
+				splitTextIntoWords(brandTitle);
+				
+				// Animate each word with a delay
+				const words = brandTitle.querySelectorAll('.word-animate');
+				brandTitleWordsCount = words.length;
+				words.forEach((word, index) => {
+					setTimeout(() => {
+						word.style.opacity = '1';
+						word.style.filter = 'blur(0px)';
+					}, 190 + (index * 95));
+				});
+			}
+			
+			// Calculate when brand title is 70% complete (start overlapping animations)
+			const brandTitleOverlapTime = 190 + (brandTitleWordsCount * 95) * 0.7;
+			
+			// Animate portfolio text line by line (starting before brand title fully finishes)
+			const portfolioText = document.querySelector('.portfolio-text');
+			let portfolioTextLinesCount = 0;
+			if (portfolioText) {
+				// Get all text nodes and spans within the portfolio text
+				const textContent = portfolioText.textContent || '';
+				const originalHTML = portfolioText.innerHTML;
+				
+				// Split by em dash (—) to create lines
+				const parts = textContent.split('—').map(part => part.trim()).filter(part => part.length > 0);
+				portfolioTextLinesCount = parts.length;
+				
+				// Clear and rebuild with line-by-line structure
+				portfolioText.innerHTML = '';
+				
+				parts.forEach((part, index) => {
+					const lineSpan = document.createElement('span');
+					lineSpan.className = 'line-animate';
+					lineSpan.style.opacity = '0';
+					lineSpan.style.filter = 'blur(10px)';
+					lineSpan.style.transition = 'opacity 0.375s cubic-bezier(0.44, 0, 0.56, 1), filter 0.375s cubic-bezier(0.44, 0, 0.56, 1)';
+					lineSpan.style.display = 'block';
+					
+					// First part should be bold (if it matches the bold span content)
+					if (index === 0) {
+						const boldSpan = document.createElement('span');
+						boldSpan.className = 'portfolio-text-bold';
+						boldSpan.textContent = part;
+						lineSpan.appendChild(boldSpan);
+						if (parts.length > 1) {
+							lineSpan.appendChild(document.createTextNode(' —'));
+						}
+					} else {
+						lineSpan.textContent = part;
+					}
+					
+					portfolioText.appendChild(lineSpan);
+					
+					// Animate each line with a delay after brand title finishes
+					setTimeout(() => {
+						lineSpan.style.opacity = '1';
+						lineSpan.style.filter = 'blur(0px)';
+					}, brandTitleOverlapTime + (index * 95));
+				});
+			}
+			
+			// Calculate when portfolio text is 80% complete
+			const portfolioTextOverlapTime = brandTitleOverlapTime + (portfolioTextLinesCount * 95) * 0.8;
+			
+			// Animate header at the same time as portfolio text starts (with blur)
+			if (header) {
+				header.style.filter = 'blur(10px)';
+				header.style.transition = 'opacity 0.4s cubic-bezier(0.44, 0, 0.56, 1), filter 0.4s cubic-bezier(0.44, 0, 0.56, 1)';
+				setTimeout(() => {
+					header.style.opacity = '1';
+					header.style.filter = 'blur(0px)';
+				}, brandTitleOverlapTime);
+			}
+			
+			// Animate right column as portfolio text is animating
+			const rightColumn = document.querySelector('#right-column');
+			if (rightColumn) {
+				rightColumn.style.opacity = '0';
+				rightColumn.style.filter = 'blur(10px)';
+				rightColumn.style.transition = 'opacity 0.56s cubic-bezier(0.44, 0, 0.56, 1), filter 0.56s cubic-bezier(0.44, 0, 0.56, 1)';
+				setTimeout(() => {
+					rightColumn.style.opacity = '1';
+					rightColumn.style.filter = 'blur(0px)';
+				}, portfolioTextOverlapTime);
+			}
+			
+			// Animate portfolio section (Selected work) after right column
+			const mainColumn = document.querySelector('#main-column');
+			if (mainColumn) {
+				const portfolioSection = mainColumn.querySelector('.portfolio-section');
+				if (portfolioSection) {
+					portfolioSection.style.opacity = '0';
+					portfolioSection.style.filter = 'blur(10px)';
+					portfolioSection.style.transition = 'opacity 0.56s cubic-bezier(0.44, 0, 0.56, 1), filter 0.56s cubic-bezier(0.44, 0, 0.56, 1)';
+					setTimeout(() => {
+						portfolioSection.style.opacity = '1';
+						portfolioSection.style.filter = 'blur(0px)';
+					}, portfolioTextOverlapTime + 95);
+				}
+			}
+			
+			// Get contact and copyright elements
+			const contactInfo = document.querySelector('.about-contact') as HTMLElement;
+			const aboutStatus = document.querySelector('.about-status') as HTMLElement;
+			const aboutInfo = document.querySelector('.about-info') as HTMLElement;
+			
+			// Initialize contact info elements
+			if (contactInfo) {
+				contactInfo.style.opacity = '1'; // Make container visible
+				const contactElements = Array.from(contactInfo.children) as HTMLElement[];
+				contactElements.forEach(element => {
+					element.style.opacity = '0';
+					element.style.filter = 'blur(10px)';
+					element.style.transition = 'opacity 0.56s cubic-bezier(0.44, 0, 0.56, 1), filter 0.56s cubic-bezier(0.44, 0, 0.56, 1)';
+				});
+			}
+			
+			// Animate about status and info earlier
+			[aboutStatus, aboutInfo].forEach((element, index) => {
+				if (element) {
+					element.style.opacity = '0';
+					element.style.filter = 'blur(10px)';
+					element.style.transition = 'opacity 0.56s cubic-bezier(0.44, 0, 0.56, 1), filter 0.56s cubic-bezier(0.44, 0, 0.56, 1)';
+					setTimeout(() => {
+						element.style.opacity = '1';
+						element.style.filter = 'blur(0px)';
+					}, portfolioTextOverlapTime + 95 + (index * 45));
+				}
+			});
+			
+			// Animate brand nav items one by one
+			const brandNav = document.querySelector('.brand-nav') as HTMLElement;
+			if (brandNav) {
+				const navLinks = brandNav.querySelectorAll('.brand-nav-link') as NodeListOf<HTMLElement>;
+				brandNav.style.opacity = '1'; // Make container visible
+				navLinks.forEach((link, index) => {
+					if (link) {
+						link.style.opacity = '0';
+						link.style.filter = 'blur(10px)';
+						link.style.transition = 'opacity 0.56s cubic-bezier(0.44, 0, 0.56, 1), filter 0.56s cubic-bezier(0.44, 0, 0.56, 1)';
+					}
+				});
+				
+				// Get nav links and contact elements for animation
+				const navLinksArray = Array.from(navLinks).reverse();
+				const contactElements = contactInfo ? Array.from(contactInfo.children) as HTMLElement[] : [];
+				
+				// Animate nav links from bottom to top
+				navLinksArray.forEach((link, index) => {
+					setTimeout(() => {
+						link.style.opacity = '1';
+						link.style.filter = 'blur(0px)';
+					}, portfolioTextOverlapTime + 250 + (index * 95));
+				});
+				
+				// Animate contact elements independently from bottom to top
+				[...contactElements].reverse().forEach((element, index) => {
+					setTimeout(() => {
+						element.style.opacity = '1';
+						element.style.filter = 'blur(0px)';
+					}, portfolioTextOverlapTime + 250 + (index * 95));
+				});
+			}
+			
+			// Animate social links separately
+			const brandSocial = document.querySelector('.brand-social') as HTMLElement;
+			if (brandSocial) {
+				brandSocial.style.opacity = '0';
+				brandSocial.style.filter = 'blur(10px)';
+				brandSocial.style.transition = 'opacity 0.56s cubic-bezier(0.44, 0, 0.56, 1), filter 0.56s cubic-bezier(0.44, 0, 0.56, 1)';
+				setTimeout(() => {
+					brandSocial.style.opacity = '1';
+					brandSocial.style.filter = 'blur(0px)';
+				}, portfolioTextOverlapTime + 190);
+			}
+			
+			// Animate mobile layout with blur
+			const mobileLayout = document.querySelector('.mobile-layout') as HTMLElement;
+			if (mobileLayout) {
+				mobileLayout.style.opacity = '0';
+				mobileLayout.style.filter = 'blur(10px)';
+				mobileLayout.style.transition = 'opacity 0.56s cubic-bezier(0.44, 0, 0.56, 1), filter 0.56s cubic-bezier(0.44, 0, 0.56, 1)';
+				setTimeout(() => {
+					mobileLayout.style.opacity = '1';
+					mobileLayout.style.filter = 'blur(0px)';
+				}, portfolioTextOverlapTime + 125);
+			}
+		};
+		
+		// When page is loaded, fade in content and hide overlay
+		window.addEventListener('load', () => {
+			// Fade in page content
+			document.documentElement.style.transition = 'opacity 0.4s cubic-bezier(0.44, 0, 0.56, 1)';
+			document.documentElement.style.opacity = '1';
+			
+			// Animate individual elements
+			animateElements();
+		});
+		
+		// Fallback: if load event already fired, show content immediately
+		if (document.readyState === 'complete') {
+			document.documentElement.style.opacity = '1';
+			animateElements();
+		}
+	}
+</script>
+
+<style>
+	/* Ensure smooth transition for page content */
+	html {
+		transition: opacity 0.4s cubic-bezier(0.44, 0, 0.56, 1);
+	}
+	
+	/* Hide header initially until animation starts */
+	header {
+		opacity: 0;
+		filter: blur(10px);
+	}
+	
+	/* Word animation styles */
+	.word-animate {
+		opacity: 0;
+		filter: blur(10px);
+		display: inline-block;
+		transition: opacity 0.3s cubic-bezier(0.44, 0, 0.56, 1), filter 0.3s cubic-bezier(0.44, 0, 0.56, 1);
+	}
+	
+	/* Line animation styles */
+	.line-animate {
+		opacity: 0;
+		filter: blur(10px);
+		display: block;
+		transition: opacity 0.3s cubic-bezier(0.44, 0, 0.56, 1), filter 0.3s cubic-bezier(0.44, 0, 0.56, 1);
+	}
+</style>
+
