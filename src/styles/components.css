@@ -30,11 +30,11 @@
 
 /* Header */
 .header {
-	@apply sticky top-0 z-50 bg-white border-b border-gray-200 px-4 md:px-8 py-4;
+	@apply sticky top-0 z-50 bg-white border-b border-gray-200 px-4 md:px-8;
 }
 
 .header-container {
-	@apply max-w-7xl mx-auto flex items-center justify-between;
+	@apply w-[1004px] h-[43.6px] mx-auto flex items-center justify-between;
 }
 
 .header-brand {
@@ -93,15 +93,16 @@
 }
 
 .brand-social {
-	@apply flex flex-col gap-4 mb-8;
+	@apply flex flex-col gap-4 mb-8 items-start;
 }
 
 .brand-social-link {
-	@apply text-gray-700 hover:text-gray-900 transition-colors;
+	@apply inline-flex w-fit text-gray-700 hover:text-gray-900 transition-colors;
 }
 
 .brand-social-icon {
-	@apply w-6 h-6;
+	width: 1.125rem;
+	height: 1.125rem;
 }
 
 .brand-nav {
