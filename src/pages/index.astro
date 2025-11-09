@@ -44,49 +44,106 @@ import Header from '../components/Header.astro';
 <script>
 	// Calculate exact header height and set fixed position for columns
 	if (typeof window !== 'undefined') {
-		const header = document.querySelector('header') as HTMLElement;
-		const leftColumn = document.querySelector('#left-column') as HTMLElement;
-		const rightColumn = document.querySelector('#right-column') as HTMLElement;
-		const main = document.querySelector('main') as HTMLElement;
-		
-		const mainColumn = document.querySelector('#main-column') as HTMLElement;
-		
-		if (header && leftColumn && rightColumn && main && mainColumn) {
+		// Store cleanup on window to avoid duplicates across SPA navigations
+		const CLEANUP_KEY = '__home_layout_cleanup__';
+		// Ensure previous listeners are removed before (re)initializing
+		if ((window as any)[CLEANUP_KEY]) {
+			try { (window as any)[CLEANUP_KEY](); } catch (_) {}
+			(window as any)[CLEANUP_KEY] = null;
+		}
+
+		const init = () => {
+			const header = document.querySelector('header') as HTMLElement | null;
+			const leftColumn = document.querySelector('#left-column') as HTMLElement | null;
+			const rightColumn = document.querySelector('#right-column') as HTMLElement | null;
+			const main = document.querySelector('main') as HTMLElement | null;
+			const mainColumn = document.querySelector('#main-column') as HTMLElement | null;
+
+			if (!header || !leftColumn || !rightColumn || !main || !mainColumn) return;
+
 			const updateFixedPosition = () => {
 				// Only update on desktop
-				if (window.innerWidth < 768) return;
-				
+				if (window.innerWidth < 768) {
+					// Reset inline styles on mobile to avoid odd spacing
+					leftColumn.style.top = '';
+					leftColumn.style.left = '';
+					leftColumn.style.width = '';
+					leftColumn.style.height = '';
+					rightColumn.style.top = '';
+					rightColumn.style.right = '';
+					rightColumn.style.width = '';
+					rightColumn.style.height = '';
+					mainColumn.style.marginLeft = '';
+					mainColumn.style.marginRight = '';
+					return;
+				}
+
 				const headerHeight = header.offsetHeight;
 				const mainRect = main.getBoundingClientRect();
 				const leftOffset = mainRect.left;
 				const rightOffset = window.innerWidth - mainRect.right;
-				
+
 				// Calculate column width (25% of main container, max 320px)
 				const columnWidth = Math.min(mainRect.width * 0.25, 320);
-				
+
 				// Left column
+				leftColumn.style.position = 'fixed';
 				leftColumn.style.top = `${headerHeight}px`;
 				leftColumn.style.left = `${leftOffset}px`;
 				leftColumn.style.width = `${columnWidth}px`;
 				leftColumn.style.height = `calc(100vh - ${headerHeight}px)`;
-				
+
 				// Right column
+				rightColumn.style.position = 'fixed';
 				rightColumn.style.top = `${headerHeight}px`;
 				rightColumn.style.right = `${rightOffset}px`;
 				rightColumn.style.width = `${columnWidth}px`;
 				rightColumn.style.height = `calc(100vh - ${headerHeight}px)`;
-				
+
 				// Main column - add margins to account for fixed columns
 				mainColumn.style.marginLeft = `${columnWidth}px`;
 				mainColumn.style.marginRight = `${columnWidth}px`;
 			};
-			
-			// Use requestAnimationFrame to ensure DOM is ready
-			requestAnimationFrame(() => {
+
+			// Initialize once DOM is ready
+			const rafId = requestAnimationFrame(() => {
 				updateFixedPosition();
+				// Defer once more to ensure fonts/layout settle after SPA swap
+				setTimeout(updateFixedPosition, 50);
 				window.addEventListener('resize', updateFixedPosition);
 				window.addEventListener('scroll', updateFixedPosition);
 			});
+
+			// Observe container size changes (e.g., responsive, content loads)
+			let ro: ResizeObserver | null = null;
+			try {
+				ro = new ResizeObserver(() => updateFixedPosition());
+				ro.observe(main);
+			} catch (_) {}
+
+			// Provide cleanup to remove listeners when leaving the page
+			(window as any)[CLEANUP_KEY] = () => {
+				try { cancelAnimationFrame(rafId); } catch (_) {}
+				window.removeEventListener('resize', updateFixedPosition);
+				window.removeEventListener('scroll', updateFixedPosition);
+				try { ro && ro.disconnect(); } catch (_) {}
+			};
+		};
+
+		// Run on initial load and on every SPA navigation to this page
+		document.addEventListener('astro:page-load', init);
+		document.addEventListener('astro:after-swap', init);
+		// Clean up when navigating away
+		document.addEventListener('astro:before-swap', () => {
+			if ((window as any)[CLEANUP_KEY]) {
+				try { (window as any)[CLEANUP_KEY](); } catch (_) {}
+				(window as any)[CLEANUP_KEY] = null;
+			}
+		});
+
+		// If page is already loaded (direct load), run immediately
+		if (document.readyState === 'complete') {
+			init();
 		}
 	}
 </script>

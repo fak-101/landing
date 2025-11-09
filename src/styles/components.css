@@ -1,3 +1,14 @@
+.brand-nav-bottom {
+	@apply mt-auto mb-4;
+	position: absolute;
+	bottom: 0;
+	left: 0;
+	width: 100%;
+}
+
+.brand-nav-item {
+	@apply py-3 text-gray-700 text-lg font-medium border-b border-gray-200;
+}
 @reference "tailwindcss";
 
 /* Layout */
@@ -29,6 +40,11 @@
 .header-brand {
 	@apply text-gray-900 font-medium;
 }
+/* Bottom Margin Container */
+.bottom-margin {
+	@apply w-full bg-white border-t border-gray-200 mt-auto flex justify-center rounded-none shadow-none;
+}
+
 
 .header-nav {
 	@apply hidden md:flex gap-6 text-gray-700;
@@ -131,7 +147,7 @@
 
 /* About Component */
 .about-container {
-	@apply flex flex-col h-full;
+	@apply flex flex-col h-full pt-8;
 }
 
 .about-status {
@@ -153,7 +169,7 @@
 }
 
 .about-avatar {
-	@apply w-32 h-32 md:w-40 md:h-40 rounded-lg bg-gradient-to-br from-teal-100 to-teal-200 mb-4 md:mb-0 overflow-hidden flex-shrink-0;
+	@apply w-28 h-28 md:w-36 md:h-36 rounded-lg bg-gradient-to-br from-teal-100 to-teal-200 mb-4 md:mb-0 overflow-hidden flex-shrink-0;
 }
 
 .about-avatar-placeholder {
@@ -181,10 +197,14 @@
 }
 
 .about-contact {
-	@apply mt-auto space-y-2 text-gray-700;
+	@apply mt-auto space-y-1 text-gray-700;
+}
+
+.about-footer {
+	@apply flex justify-between items-center mt-2;
 }
 
 .about-copyright {
-	@apply text-sm text-gray-500 mt-4;
+	@apply text-sm text-gray-500;
 }
 

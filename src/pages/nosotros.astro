@@ -1,0 +1,28 @@
+
+---
+import Layout from '../layouts/Layout.astro';
+import Header from '../components/Header.astro';
+---
+
+<Layout>
+    <div class="page-container">
+        <Header />
+        <main class="main-content">
+            <div class="desktop-layout">
+                <!-- Left Column -->
+                <aside class="sidebar-column" id="left-column"></aside>
+
+                <!-- Main Column -->
+                <section class="main-column" id="main-column"></section>
+
+                <!-- Right Column -->
+                <aside class="sidebar-column-right" id="right-column"></aside>
+            </div>
+            <div class="mobile-layout">
+                <div class="column"></div>
+                <div class="column"></div>
+                <div class="column"></div>
+            </div>
+        </main>
+    </div>
+</Layout>
