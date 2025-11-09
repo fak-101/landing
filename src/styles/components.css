@@ -54,6 +54,10 @@
 	@apply hover:text-gray-900 transition-colors;
 }
 
+.header-nav-link.is-active {
+	@apply font-bold text-gray-900;
+}
+
 .header-actions {
 	@apply flex items-center gap-4;
 }
