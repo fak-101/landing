@@ -17,15 +17,20 @@
 }
 
 .main-content {
-	@apply max-w-7xl mx-auto px-4 md:px-8 py-8 md:py-12 relative;
+	@apply max-w-7xl mx-auto px-4 md:px-8 py-8 md:py-12 lg:py-0 relative overflow-x-hidden lg:overflow-x-visible;
 }
 
 .desktop-layout {
-	@apply hidden md:block;
+	@apply hidden lg:block;
 }
 
 .mobile-layout {
-	@apply md:hidden space-y-8;
+	@apply lg:hidden space-y-8 w-full;
+}
+
+/* Ensure mobile children never overflow horizontally */
+.mobile-layout > * {
+	@apply max-w-full;
 }
 
 /* Header */
@@ -34,7 +39,7 @@
 }
 
 .header-container {
-	@apply w-[1004px] h-[43.6px] mx-auto flex items-center justify-between;
+	@apply max-w-[1004px] w-full h-[43.6px] mx-auto flex items-center justify-between;
 }
 
 .header-brand {
@@ -72,11 +77,11 @@
 
 /* Sidebar Columns */
 .sidebar-column {
-	@apply md:fixed md:overflow-y-auto md:bg-white md:z-30 md:px-4 border-r border-gray-200 pr-8;
+	@apply md:fixed md:overflow-y-auto md:bg-white md:z-30 md:px-4 lg:border-r lg:border-gray-200 lg:pr-8;
 }
 
 .sidebar-column-right {
-	@apply md:fixed md:overflow-y-auto md:bg-white md:z-30 md:px-4 border-l border-gray-200 pl-8;
+	@apply md:fixed md:overflow-y-auto md:bg-white md:z-30 md:px-4 lg:border-l lg:border-gray-200 lg:pl-8;
 }
 
 .main-column {
@@ -110,7 +115,7 @@
 }
 
 .brand-nav-link {
-	@apply py-3 text-gray-700 hover:text-gray-900 transition-colors border-b border-gray-200;
+	@apply py-1 text-gray-700 hover:text-gray-900 transition-colors border-b border-gray-200;
 }
 
 /* Portfolio Component */
@@ -131,19 +136,23 @@
 }
 
 .portfolio-section {
-	@apply mt-auto;
+	@apply mt-[120px];
 }
 
 .portfolio-title {
-	@apply text-2xl font-semibold text-gray-900 mb-8;
+	@apply text-base font-bold text-gray-900 mb-4 flex items-center justify-between;
 }
 
 .portfolio-count {
-	@apply text-gray-500 font-normal;
+	@apply text-gray-500 font-bold;
 }
 
 .portfolio-grid {
-	@apply grid grid-cols-1 gap-6;
+	@apply grid grid-cols-1 gap-10;
+}
+
+.portfolio-grid + .portfolio-grid {
+	@apply mt-10; /* ~40px */
 }
 
 .portfolio-item {
@@ -152,7 +161,7 @@
 
 /* About Component */
 .about-container {
-	@apply flex flex-col h-full pt-8;
+	@apply flex flex-col h-full;
 }
 
 .about-status {
@@ -165,7 +174,7 @@
 
 /* Row wrapper for each person: stacked on mobile, side-by-side on md+ */
 .about-row {
-	@apply flex flex-col md:flex-row items-center gap-6 mb-8;
+	@apply flex flex-col md:flex-row items-start gap-6 mb-8 w-full;
 }
 
 /* Mirror the row on md+ (used for first person to put avatar on the right) */
@@ -174,7 +183,7 @@
 }
 
 .about-avatar {
-	@apply w-28 h-28 md:w-36 md:h-36 rounded-lg bg-gradient-to-br from-teal-100 to-teal-200 mb-4 md:mb-0 overflow-hidden flex-shrink-0;
+	@apply block w-28 h-28 md:w-36 md:h-36 rounded-lg bg-gradient-to-br from-teal-100 to-teal-200 mb-4 md:mb-0 overflow-hidden flex-shrink-0;
 }
 
 .about-avatar-placeholder {
@@ -186,7 +195,7 @@
 }
 
 .about-info {
-	@apply space-y-1 mb-2 md:mb-0 md:w-1/2;
+	@apply space-y-1 mb-2 md:mb-0 w-full md:w-1/2;
 }
 
 .about-title {
@@ -211,5 +220,15 @@
 
 .about-copyright {
 	@apply text-sm text-gray-500;
+}
+
+
+/* About footer visibility and mobile site footer */
+.about-contact-footer {
+	@apply hidden lg:block;
+}
+
+.site-footer-mobile {
+	@apply lg:hidden text-gray-600 border-t border-gray-200 pt-6 mt-12;
 }
 
