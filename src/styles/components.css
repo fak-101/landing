@@ -76,16 +76,48 @@
 }
 
 /* Sidebar Columns */
+
 .sidebar-column {
-	@apply md:fixed md:overflow-y-auto md:bg-white md:z-30 md:px-4 lg:border-r lg:border-gray-200 lg:pr-8;
+	@apply lg:fixed lg:bg-white lg:z-30 lg:px-4 lg:border-r lg:border-gray-200 lg:pr-8;
 }
 
 .sidebar-column-right {
-	@apply md:fixed md:overflow-y-auto md:bg-white md:z-30 md:px-4 lg:border-l lg:border-gray-200 lg:pl-8;
+	@apply lg:fixed lg:bg-white lg:z-30 lg:px-4 lg:border-l lg:border-gray-200 lg:pl-8;
 }
 
 .main-column {
 	@apply md:mx-auto md:max-w-[50%];
+}
+
+/* Desktop fixed columns driven by CSS variables */
+@media (min-width: 1024px) {
+  .sidebar-column,
+  .sidebar-column-right {
+    top: var(--header-h);
+    width: var(--col-w);
+    height: calc(100dvh - var(--header-h));
+    overflow: hidden;
+    pointer-events: none; /* do not capture wheel/scroll */
+  }
+
+  .sidebar-column {
+    left: var(--left-x);
+  }
+
+  .sidebar-column-right {
+    right: var(--right-x);
+  }
+
+  /* Keep inner content interactive while wrappers ignore wheel events */
+  .sidebar-column > *,
+  .sidebar-column-right > * {
+    pointer-events: auto;
+  }
+
+  .main-column {
+    margin-left: var(--col-w);
+    margin-right: var(--col-w);
+  }
 }
 
 /* Brand Component */
@@ -124,7 +156,7 @@
 }
 
 .portfolio-intro {
-	@apply mb-12;
+	@apply mb-40;
 }
 
 .portfolio-text {
@@ -136,15 +168,20 @@
 }
 
 .portfolio-section {
-	@apply mt-[120px];
+	@apply mt-3 relative z-10 bg-white;
 }
 
 .portfolio-title {
-	@apply text-base font-bold text-gray-900 mb-4 flex items-center justify-between;
+	@apply text-base font-bold text-gray-900 mb-1 flex items-center justify-between;
 }
 
 .portfolio-count {
 	@apply text-gray-500 font-bold;
+}
+
+/* Sticky header block for portfolio intro + title */
+.portfolio-sticky {
+	@apply sticky top-0 z-0 bg-white/0; /* aligns with column and avoids overflow */
 }
 
 .portfolio-grid {

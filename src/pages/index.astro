@@ -71,17 +71,7 @@ import Header from '../components/Header.astro';
 			const updateFixedPosition = () => {
 				// Only update on desktop (lg and up)
 				if (window.innerWidth < 1024) {
-					// Reset inline styles on mobile to avoid odd spacing
-					leftColumn.style.top = '';
-					leftColumn.style.left = '';
-					leftColumn.style.width = '';
-					leftColumn.style.height = '';
-					rightColumn.style.top = '';
-					rightColumn.style.right = '';
-					rightColumn.style.width = '';
-					rightColumn.style.height = '';
-					mainColumn.style.marginLeft = '';
-					mainColumn.style.marginRight = '';
+					// No need to set CSS variables on mobile; desktop-only CSS will not apply
 					return;
 				}
 
@@ -93,23 +83,12 @@ import Header from '../components/Header.astro';
 				// Calculate column width (25% of main container, max 320px)
 				const columnWidth = Math.min(mainRect.width * 0.25, 320);
 
-				// Left column
-				leftColumn.style.position = 'fixed';
-				leftColumn.style.top = `${headerHeight}px`;
-				leftColumn.style.left = `${leftOffset}px`;
-				leftColumn.style.width = `${columnWidth}px`;
-				leftColumn.style.height = `calc(100vh - ${headerHeight}px)`;
-
-				// Right column
-				rightColumn.style.position = 'fixed';
-				rightColumn.style.top = `${headerHeight}px`;
-				rightColumn.style.right = `${rightOffset}px`;
-				rightColumn.style.width = `${columnWidth}px`;
-				rightColumn.style.height = `calc(100vh - ${headerHeight}px)`;
-
-				// Main column - add margins to account for fixed columns
-				mainColumn.style.marginLeft = `${columnWidth}px`;
-				mainColumn.style.marginRight = `${columnWidth}px`;
+				// Set CSS variables to drive layout via CSS
+				const rootStyle = document.documentElement.style;
+				rootStyle.setProperty('--header-h', `${headerHeight}px`);
+				rootStyle.setProperty('--left-x', `${leftOffset}px`);
+				rootStyle.setProperty('--right-x', `${rightOffset}px`);
+				rootStyle.setProperty('--col-w', `${columnWidth}px`);
 			};
 
 			// Initialize once DOM is ready
@@ -118,7 +97,6 @@ import Header from '../components/Header.astro';
 				// Defer once more to ensure fonts/layout settle after SPA swap
 				setTimeout(updateFixedPosition, 50);
 				window.addEventListener('resize', updateFixedPosition);
-				window.addEventListener('scroll', updateFixedPosition);
 			});
 
 			// Observe container size changes (e.g., responsive, content loads)
@@ -126,13 +104,13 @@ import Header from '../components/Header.astro';
 			try {
 				ro = new ResizeObserver(() => updateFixedPosition());
 				ro.observe(main);
+				if (header) ro.observe(header);
 			} catch (_) {}
 
 			// Provide cleanup to remove listeners when leaving the page
 			(window as any)[CLEANUP_KEY] = () => {
 				try { cancelAnimationFrame(rafId); } catch (_) {}
 				window.removeEventListener('resize', updateFixedPosition);
-				window.removeEventListener('scroll', updateFixedPosition);
 				try { ro && ro.disconnect(); } catch (_) {}
 			};
 		};
