@@ -1,0 +1,504 @@
+---
+---
+
+<script>
+	if (typeof window !== 'undefined') {
+		// ============================================
+		// GENERIC ANIMATION SYSTEM
+		// ============================================
+
+		type AnimationConfig = {
+			startDelay?: number;
+			stepDelay?: number;
+			duration?: number;
+			blur?: number;
+			easing?: string;
+		};
+
+		type AnimationType = 'word-by-word' | 'line-by-line-top' | 'line-by-line-bottom';
+
+		const DEFAULT_CONFIG: Required<AnimationConfig> = {
+			startDelay: 0,
+			stepDelay: 95,
+			duration: 0.56,
+			blur: 10,
+			easing: 'cubic-bezier(0.44, 0, 0.56, 1)'
+		};
+
+		// Immediately set elements to pre-animation state (no flicker)
+		const preHideElements = (selectors: string[], options: { blur?: number } = {}) => {
+			const { blur } = { ...DEFAULT_CONFIG, ...options };
+			selectors.forEach((sel) => {
+				const nodes = document.querySelectorAll<HTMLElement>(sel);
+				nodes.forEach((el) => {
+					// Disable transitions to avoid visible tween to hidden state
+					el.style.transition = 'none';
+					el.style.opacity = '0';
+					el.style.filter = `blur(${blur}px)`;
+					// Force reflow so subsequent transition changes take effect
+					void el.offsetHeight;
+				});
+			});
+		};
+
+		const getAnimatedSelectors = (includeHeader: boolean) => {
+			// Do NOT include containers that animate their children (brand-title, portfolio-text)
+			const animated = [
+				'#right-column',
+				'#main-column .portfolio-section',
+				'.about-info',
+				'.about-avatar',
+				'.about-status',
+				'.brand-social',
+				'.mobile-layout',
+				'.brand-nav .brand-nav-link',
+				'.about-contact > *'
+			];
+			return includeHeader ? ['header', ...animated] : animated;
+		};
+
+		// Core animation helper - sets up blur transition
+		const setupBlurTransition = (el: HTMLElement, config: AnimationConfig = {}) => {
+			const { duration, easing } = { ...DEFAULT_CONFIG, ...config };
+			el.style.transition = `opacity ${duration}s ${easing}, filter ${duration}s ${easing}`;
+		};
+
+		// Reveal element with blur effect
+		const revealElement = (el: HTMLElement, delay: number, config: AnimationConfig = {}) => {
+			const { blur } = { ...DEFAULT_CONFIG, ...config };
+			el.style.opacity = '0';
+			el.style.filter = `blur(${blur}px)`;
+			setupBlurTransition(el, config);
+			
+			setTimeout(() => {
+				el.style.opacity = '1';
+				el.style.filter = 'blur(0px)';
+			}, delay);
+		};
+
+		// ============================================
+		// ANIMATION TYPE 1: WORD BY WORD FROM TOP
+		// ============================================
+		const animateWordByWord = (element: HTMLElement, config: AnimationConfig = {}) => {
+			if (!element) return { count: 0 };
+			
+			const { startDelay, stepDelay } = { ...DEFAULT_CONFIG, ...config };
+			const text = element.textContent || '';
+			element.innerHTML = '';
+			
+			const words = text.split(/(\s+)/).filter(w => w.trim().length > 0);
+			
+			words.forEach((word, index) => {
+				const span = document.createElement('span');
+				span.textContent = word;
+				span.className = 'animate-item';
+				span.style.display = 'inline-block';
+				
+				revealElement(span, startDelay + index * stepDelay, config);
+				
+				element.appendChild(span);
+				if (index < words.length - 1) {
+					element.appendChild(document.createTextNode(' '));
+				}
+			});
+			
+			return { count: words.length };
+		};
+
+		// ============================================
+		// ANIMATION TYPE 2: LINE BY LINE FROM TOP
+		// ============================================
+		const animateLineByLineTop = (
+			element: HTMLElement, 
+			config: AnimationConfig & { separator?: string | RegExp; display?: string } = {}
+		) => {
+			if (!element) return { count: 0 };
+			
+			const { 
+				startDelay, 
+				stepDelay, 
+				separator = /\n+/, 
+				display = 'block' 
+			} = { ...DEFAULT_CONFIG, ...config };
+			
+			const raw = element.textContent || '';
+			const parts = raw
+				.split(separator)
+				.map(p => typeof p === 'string' ? p.trim() : p)
+				.filter(Boolean);
+			
+			element.innerHTML = '';
+			
+			parts.forEach((part, index) => {
+				const lineSpan = document.createElement('span');
+				lineSpan.className = 'animate-item';
+				lineSpan.style.display = display;
+				lineSpan.textContent = part as string;
+				
+				revealElement(lineSpan, startDelay + index * stepDelay, config);
+				
+				element.appendChild(lineSpan);
+			});
+			
+			return { count: parts.length };
+		};
+
+		// ============================================
+		// ANIMATION TYPE 3: LINE BY LINE FROM BOTTOM
+		// ============================================
+		const animateLineByLineBottom = (
+			container: HTMLElement,
+			itemSelector: string = ':scope > *',
+			config: AnimationConfig = {}
+		) => {
+			if (!container) return { count: 0 };
+			
+			const { startDelay, stepDelay } = { ...DEFAULT_CONFIG, ...config };
+			const items = Array.from(container.querySelectorAll(itemSelector)) as HTMLElement[];
+			const reversed = items.slice().reverse();
+			
+			reversed.forEach((el, index) => {
+				revealElement(el, startDelay + index * stepDelay, config);
+			});
+			
+			return { count: items.length };
+		};
+
+		// ============================================
+		// UNIFIED ANIMATION INTERFACE
+		// ============================================
+		const animate = (
+			element: HTMLElement | string,
+			type: AnimationType,
+			config: AnimationConfig & { 
+				selector?: string; 
+				separator?: string | RegExp;
+				display?: string;
+			} = {}
+		) => {
+			const el = typeof element === 'string' 
+				? document.querySelector<HTMLElement>(element) 
+				: element;
+			
+			if (!el) return { count: 0 };
+
+			switch (type) {
+				case 'word-by-word':
+					return animateWordByWord(el, config);
+				case 'line-by-line-top':
+					return animateLineByLineTop(el, config);
+				case 'line-by-line-bottom':
+					return animateLineByLineBottom(el, config.selector || ':scope > *', config);
+				default:
+					return { count: 0 };
+			}
+		};
+
+		// Simple element blur animation (for non-text elements)
+		const animateElement = (
+			element: HTMLElement | string,
+			config: AnimationConfig = {}
+		) => {
+			const el = typeof element === 'string' 
+				? document.querySelector<HTMLElement>(element) 
+				: element;
+			
+			if (!el) return;
+			
+			const { startDelay } = { ...DEFAULT_CONFIG, ...config };
+			revealElement(el, startDelay, config);
+		};
+
+		// Expose to global scope for reuse
+		(window as any).animate = animate;
+		(window as any).animateElement = animateElement;
+		
+		// Legacy compatibility exports
+		(window as any).LoadElementWithBlur = (el: HTMLElement, opts = {}) => 
+			animateElement(el, opts);
+		(window as any).LoadTextWordByWord = (el: HTMLElement, opts = {}) => 
+			animateWordByWord(el, opts);
+		(window as any).LoadTextLinebyLine = (el: HTMLElement, opts = {}) => 
+			animateLineByLineTop(el, opts);
+		(window as any).LoadFromBottomLineByLine = (container: HTMLElement, selector: string, opts = {}) => 
+			animateLineByLineBottom(container, selector, opts);
+
+		// ============================================
+		// PAGE-SPECIFIC ANIMATIONS
+		// ============================================
+		
+		const FIRST_LOAD_KEY = 'maelle_first_load_done_v1';
+		const isFirstLoad = !sessionStorage.getItem(FIRST_LOAD_KEY);
+
+		if (isFirstLoad) {
+			document.documentElement.classList.add('first-load');
+		} else {
+			document.documentElement.classList.add('nav-anim');
+		}
+
+		if (isFirstLoad) {
+			document.documentElement.style.opacity = '0';
+		}
+
+		const animateElements = (opts = { skipHeader: false }) => {
+			// Pre-hide all animated elements immediately to prevent flash
+			const selectorsToHide = getAnimatedSelectors(!opts.skipHeader ? true : false);
+			preHideElements(selectorsToHide);
+
+			const header = document.querySelector('header') as HTMLElement;
+			if (header && !opts.skipHeader) {
+				header.style.opacity = '0';
+				header.style.visibility = 'visible';
+			}
+			
+			// Brand title: word by word
+			const brandTitle = document.querySelector('.brand-title') as HTMLElement;
+			let brandTitleWordsCount = 0;
+			if (brandTitle) {
+				const res = animate(brandTitle, 'word-by-word', { 
+					startDelay: 190, 
+					stepDelay: 95, 
+					duration: 0.375 
+				});
+				// Now that spans are in place and hidden, safely reveal the container
+				brandTitle.style.visibility = 'visible';
+				brandTitleWordsCount = res.count;
+			}
+			
+			const brandTitleOverlapTime = 190 + (brandTitleWordsCount * 95) * 0.7;
+			
+			// Portfolio text: line by line with custom separator
+			const portfolioText = document.querySelector('.portfolio-text') as HTMLElement;
+			let portfolioTextLinesCount = 0;
+			if (portfolioText) {
+				const textContent = portfolioText.textContent || '';
+				const parts = textContent.split('—').map(part => part.trim()).filter(Boolean);
+				portfolioTextLinesCount = parts.length;
+				
+				portfolioText.innerHTML = '';
+				
+				parts.forEach((part, index) => {
+					const lineSpan = document.createElement('span');
+					lineSpan.className = 'animate-item';
+					lineSpan.style.display = 'block';
+					
+					if (index === 0) {
+						const boldSpan = document.createElement('span');
+						boldSpan.className = 'portfolio-text-bold';
+						boldSpan.textContent = part;
+						lineSpan.appendChild(boldSpan);
+						if (parts.length > 1) {
+							lineSpan.appendChild(document.createTextNode(' —'));
+						}
+					} else {
+						lineSpan.textContent = part;
+					}
+					
+					portfolioText.appendChild(lineSpan);
+					
+					revealElement(lineSpan, brandTitleOverlapTime + (index * 95), { duration: 0.375 });
+				});
+			}
+			
+			const portfolioTextOverlapTime = brandTitleOverlapTime + (portfolioTextLinesCount * 95) * 0.8;
+			
+			// Header: simple blur animation
+			if (header && !opts.skipHeader) {
+				animateElement(header, { 
+					startDelay: brandTitleOverlapTime, 
+					duration: 0.4 
+				});
+			}
+			
+			// Right column: simple blur animation
+			animateElement('#right-column', { 
+				startDelay: portfolioTextOverlapTime, 
+				duration: 0.56 
+			});
+			
+			// Portfolio section: simple blur animation
+			const mainColumn = document.querySelector('#main-column');
+			if (mainColumn) {
+				const portfolioSection = mainColumn.querySelector('.portfolio-section') as HTMLElement;
+				if (portfolioSection) {
+					animateElement(portfolioSection, { 
+						startDelay: portfolioTextOverlapTime + 95, 
+						duration: 0.56 
+					});
+				}
+			}
+			
+			// About sections
+			const firstAboutInfo = document.querySelector('.about-info--first') as HTMLElement;
+			const firstAboutAvatar = document.querySelector('.about-avatar--first') as HTMLElement;
+			
+			if (firstAboutInfo) {
+				animateElement(firstAboutInfo, { 
+					startDelay: portfolioTextOverlapTime + 95, 
+					duration: 0.56 
+				});
+			}
+			
+			if (firstAboutAvatar) {
+				animateElement(firstAboutAvatar, { 
+					startDelay: portfolioTextOverlapTime + 140, 
+					duration: 0.56 
+				});
+			}
+
+			// Other about elements
+			const aboutStatus = document.querySelector('.about-status') as HTMLElement;
+			const aboutInfos = Array.from(document.querySelectorAll('.about-info'))
+				.filter(el => !el.classList.contains('about-info--first')) as HTMLElement[];
+			
+			const otherElements = [aboutStatus, ...aboutInfos];
+			otherElements.forEach((element, index) => {
+				if (element) {
+					animateElement(element, { 
+						startDelay: portfolioTextOverlapTime + 95 + (index * 45), 
+						duration: 0.56 
+					});
+				}
+			});
+
+			// Second about row
+			const secondRow = document.querySelector('.about-row.about-row--mirror') as HTMLElement;
+			if (secondRow) {
+				const secondInfo = secondRow.querySelector('.about-info') as HTMLElement;
+				const secondAvatar = secondRow.querySelector('.about-avatar') as HTMLElement;
+				const startSecond = portfolioTextOverlapTime + 215;
+				
+				if (secondInfo) {
+					animateElement(secondInfo, { 
+						startDelay: startSecond, 
+						duration: 0.56 
+					});
+				}
+				
+				if (secondAvatar) {
+					animateElement(secondAvatar, { 
+						startDelay: startSecond + 45, 
+						duration: 0.56 
+					});
+				}
+			}
+			
+			// Brand nav: bottom to top animation
+			const brandNav = document.querySelector('.brand-nav') as HTMLElement;
+			if (brandNav) {
+				brandNav.style.opacity = '1';
+				animate(brandNav, 'line-by-line-bottom', { 
+					selector: '.brand-nav-link',
+					startDelay: portfolioTextOverlapTime + 250, 
+					stepDelay: 95, 
+					duration: 0.56 
+				});
+			}
+			
+			// Contact info: bottom to top animation (legacy helper)
+			const contactInfo = document.querySelector('.about-contact') as HTMLElement;
+			if (contactInfo) {
+				contactInfo.style.opacity = '1';
+				(window as any).LoadFromBottomLineByLine(contactInfo, ':scope > *', { 
+					startDelay: portfolioTextOverlapTime + 250, 
+					stepDelay: 95, 
+					duration: 0.56 
+				});
+			}
+			
+			// Brand social: simple blur animation
+			animateElement('.brand-social', { 
+				startDelay: portfolioTextOverlapTime + 190, 
+				duration: 0.56 
+			});
+			
+			// Mobile layout: simple blur animation
+			animateElement('.mobile-layout', { 
+				startDelay: portfolioTextOverlapTime + 125, 
+				duration: 0.56 
+			});
+
+			try { 
+				document.documentElement.classList.remove('nav-anim'); 
+			} catch (_) {}
+		};
+		
+		window.addEventListener('load', () => {
+			animateElements({ skipHeader: !isFirstLoad });
+			try { document.body.classList.remove('pre-animate'); } catch (_) {}
+			
+			if (isFirstLoad) {
+				document.documentElement.style.transition = 'opacity 0.4s cubic-bezier(0.44, 0, 0.56, 1)';
+				document.documentElement.style.opacity = '1';
+				try { sessionStorage.setItem(FIRST_LOAD_KEY, '1'); } catch (e) {}
+				// No longer need first-load CSS once revealed
+				try { document.documentElement.classList.remove('first-load'); } catch (_) {}
+			}
+		});
+
+		// Re-run animations on client-side navigations (Astro ClientRouter)
+		document.addEventListener('astro:page-load', () => {
+			try { document.documentElement.classList.add('nav-anim'); } catch (_) {}
+			// On navigations, skip header animation
+			animateElements({ skipHeader: true });
+			// Ensure page is visible after navigation
+			try { document.body.classList.remove('pre-animate'); } catch (_) {}
+		});
+
+		// Pre-hide as early as possible before DOM swap to avoid flicker
+		document.addEventListener('astro:before-swap', () => {
+			try { document.documentElement.classList.add('nav-anim'); } catch (_) {}
+			preHideElements(getAnimatedSelectors(false));
+		});
+
+		if (document.readyState === 'complete') {
+			animateElements({ skipHeader: !isFirstLoad });
+			try { document.body.classList.remove('pre-animate'); } catch (_) {}
+			if (isFirstLoad) {
+				document.documentElement.style.opacity = '1';
+				try { sessionStorage.setItem(FIRST_LOAD_KEY, '1'); } catch (e) {}
+				try { document.documentElement.classList.remove('first-load'); } catch (_) {}
+			}
+		}
+	}
+</script>
+
+<style>
+	:global(html) {
+		transition: opacity 0.4s cubic-bezier(0.44, 0, 0.56, 1);
+	}
+
+	:global(body.pre-animate) .brand-title {
+		visibility: hidden;
+	}
+	
+	:global(html.first-load) header {
+		opacity: 0;
+		filter: blur(10px);
+	}
+
+	/* Prevent brand title overflow before JS initializes on first load */
+	:global(html.first-load) .brand-title {
+		visibility: hidden;
+		overflow: hidden;
+	}
+
+	:global(html.nav-anim) #right-column,
+	:global(html.nav-anim) #main-column .portfolio-section,
+	:global(html.nav-anim) .about-info,
+	:global(html.nav-anim) .about-avatar,
+	:global(html.nav-anim) .about-status,
+	:global(html.nav-anim) .brand-social,
+	:global(html.nav-anim) .mobile-layout,
+	:global(html.nav-anim) .brand-nav .brand-nav-link,
+	:global(html.nav-anim) .about-contact > * {
+		opacity: 0;
+		filter: blur(10px);
+	}
+	
+	.animate-item {
+		opacity: 0;
+		filter: blur(10px);
+	}
+</style>
+

@@ -1,3 +1,14 @@
+.brand-nav-bottom {
+	@apply mt-auto mb-4;
+	position: absolute;
+	bottom: 0;
+	left: 0;
+	width: 100%;
+}
+
+.brand-nav-item {
+	@apply py-3 text-gray-700 text-lg font-medium border-b border-gray-200;
+}
 @reference "tailwindcss";
 
 /* Layout */
@@ -6,29 +17,39 @@
 }
 
 .main-content {
-	@apply max-w-7xl mx-auto px-4 md:px-8 py-8 md:py-12 relative;
+	@apply max-w-7xl mx-auto px-4 md:px-8 py-8 md:py-12 lg:py-0 relative overflow-x-hidden lg:overflow-x-visible;
 }
 
 .desktop-layout {
-	@apply hidden md:block;
+	@apply hidden lg:block;
 }
 
 .mobile-layout {
-	@apply md:hidden space-y-8;
+	@apply lg:hidden space-y-8 w-full;
+}
+
+/* Ensure mobile children never overflow horizontally */
+.mobile-layout > * {
+	@apply max-w-full;
 }
 
 /* Header */
 .header {
-	@apply sticky top-0 z-50 bg-white border-b border-gray-200 px-4 md:px-8 py-4;
+	@apply sticky top-0 z-50 bg-white border-b border-gray-200 px-4 md:px-8;
 }
 
 .header-container {
-	@apply max-w-7xl mx-auto flex items-center justify-between;
+	@apply max-w-[1004px] w-full h-[43.6px] mx-auto flex items-center justify-between;
 }
 
 .header-brand {
 	@apply text-gray-900 font-medium;
 }
+/* Bottom Margin Container */
+.bottom-margin {
+	@apply w-full bg-white border-t border-gray-200 mt-auto flex justify-center rounded-none shadow-none;
+}
+
 
 .header-nav {
 	@apply hidden md:flex gap-6 text-gray-700;
@@ -36,6 +57,10 @@
 
 .header-nav-link {
 	@apply hover:text-gray-900 transition-colors;
+}
+
+.header-nav-link.is-active {
+	@apply font-bold text-gray-900;
 }
 
 .header-actions {
@@ -51,16 +76,48 @@
 }
 
 /* Sidebar Columns */
+
 .sidebar-column {
-	@apply md:fixed md:overflow-y-auto md:bg-white md:z-30 md:px-4 border-r border-gray-200 pr-8;
+	@apply lg:fixed lg:bg-white lg:z-30 lg:px-4 lg:border-r lg:border-gray-200 lg:pr-8;
 }
 
 .sidebar-column-right {
-	@apply md:fixed md:overflow-y-auto md:bg-white md:z-30 md:px-4 border-l border-gray-200 pl-8;
+	@apply lg:fixed lg:bg-white lg:z-30 lg:px-4 lg:border-l lg:border-gray-200 lg:pl-8;
 }
 
 .main-column {
 	@apply md:mx-auto md:max-w-[50%];
+}
+
+/* Desktop fixed columns driven by CSS variables */
+@media (min-width: 1024px) {
+  .sidebar-column,
+  .sidebar-column-right {
+    top: var(--header-h);
+    width: var(--col-w);
+    height: calc(100dvh - var(--header-h));
+    overflow: hidden;
+    pointer-events: none; /* do not capture wheel/scroll */
+  }
+
+  .sidebar-column {
+    left: var(--left-x);
+  }
+
+  .sidebar-column-right {
+    right: var(--right-x);
+  }
+
+  /* Keep inner content interactive while wrappers ignore wheel events */
+  .sidebar-column > *,
+  .sidebar-column-right > * {
+    pointer-events: auto;
+  }
+
+  .main-column {
+    margin-left: var(--col-w);
+    margin-right: var(--col-w);
+  }
 }
 
 /* Brand Component */
@@ -73,15 +130,16 @@
 }
 
 .brand-social {
-	@apply flex flex-col gap-4 mb-8;
+	@apply flex flex-col gap-4 mb-8 items-start;
 }
 
 .brand-social-link {
-	@apply text-gray-700 hover:text-gray-900 transition-colors;
+	@apply inline-flex w-fit text-gray-700 hover:text-gray-900 transition-colors;
 }
 
 .brand-social-icon {
-	@apply w-6 h-6;
+	width: 1.125rem;
+	height: 1.125rem;
 }
 
 .brand-nav {
@@ -89,7 +147,7 @@
 }
 
 .brand-nav-link {
-	@apply py-3 text-gray-700 hover:text-gray-900 transition-colors border-b border-gray-200;
+	@apply py-1 text-gray-700 hover:text-gray-900 transition-colors border-b border-gray-200;
 }
 
 /* Portfolio Component */
@@ -98,7 +156,7 @@
 }
 
 .portfolio-intro {
-	@apply mb-12;
+	@apply mb-40;
 }
 
 .portfolio-text {
@@ -110,19 +168,28 @@
 }
 
 .portfolio-section {
-	@apply mt-auto;
+	@apply mt-3 relative z-10 bg-white;
 }
 
 .portfolio-title {
-	@apply text-2xl font-semibold text-gray-900 mb-8;
+	@apply text-base font-bold text-gray-900 mb-1 flex items-center justify-between;
 }
 
 .portfolio-count {
-	@apply text-gray-500 font-normal;
+	@apply text-gray-500 font-bold;
+}
+
+/* Sticky header block for portfolio intro + title */
+.portfolio-sticky {
+	@apply sticky top-0 z-0 bg-white/0; /* aligns with column and avoids overflow */
 }
 
 .portfolio-grid {
-	@apply grid grid-cols-1 gap-6;
+	@apply grid grid-cols-1 gap-10;
+}
+
+.portfolio-grid + .portfolio-grid {
+	@apply mt-10; /* ~40px */
 }
 
 .portfolio-item {
@@ -142,8 +209,18 @@
 	@apply mb-8;
 }
 
+/* Row wrapper for each person: stacked on mobile, side-by-side on md+ */
+.about-row {
+	@apply flex flex-col md:flex-row items-start gap-6 mb-8 w-full;
+}
+
+/* Mirror the row on md+ (used for first person to put avatar on the right) */
+.about-row--mirror {
+	@apply md:flex-row-reverse;
+}
+
 .about-avatar {
-	@apply w-32 h-32 md:w-40 md:h-40 rounded-lg bg-gradient-to-br from-teal-100 to-teal-200 mb-4 overflow-hidden;
+	@apply block w-28 h-28 md:w-36 md:h-36 rounded-lg bg-gradient-to-br from-teal-100 to-teal-200 mb-4 md:mb-0 overflow-hidden flex-shrink-0;
 }
 
 .about-avatar-placeholder {
@@ -155,7 +232,7 @@
 }
 
 .about-info {
-	@apply space-y-1 mb-2;
+	@apply space-y-1 mb-2 md:mb-0 w-full md:w-1/2;
 }
 
 .about-title {
@@ -171,10 +248,24 @@
 }
 
 .about-contact {
-	@apply mt-auto space-y-2 text-gray-700;
+	@apply mt-auto space-y-1 text-gray-700;
+}
+
+.about-footer {
+	@apply flex justify-between items-center mt-2;
 }
 
 .about-copyright {
-	@apply text-sm text-gray-500 mt-4;
+	@apply text-sm text-gray-500;
+}
+
+
+/* About footer visibility and mobile site footer */
+.about-contact-footer {
+	@apply hidden lg:block;
+}
+
+.site-footer-mobile {
+	@apply lg:hidden text-gray-600 border-t border-gray-200 pt-6 mt-12;
 }
 

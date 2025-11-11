@@ -1,19 +1,47 @@
 ---
-
+const nowDate = new Date();
+const fmt = new Intl.DateTimeFormat('es-ES', { day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit', hour12: true });
+const displayTime = fmt.format(nowDate);
+const iso = nowDate.toISOString();
+const { currentPath } = Astro.props as { currentPath?: string };
+const pathname = currentPath ?? Astro.url.pathname;
+const isNosotros = pathname.startsWith('/nosotros');
+const isPortfolio = pathname.startsWith('/portfolio');
+const isHomeActive = pathname === '/' || (!isNosotros && !isPortfolio);
 ---
 
-<header class="header">
+<header class="header" transition:name="site-header">
     <div class="header-container">
-        <div class="header-brand">◆ Maelle</div>
+        <div class="header-brand">◆</div>
         <nav class="header-nav">
-            <a href="#" class="header-nav-link">Home</a>
-            <a href="#" class="header-nav-link">Info</a>
-            <a href="#" class="header-nav-link">Work</a>
-            <a href="#" class="header-nav-link">Contact</a>
+              <a href="/" class={`header-nav-link ${isHomeActive ? 'is-active' : ''}`}>home,</a>
+              <a href="/nosotros" class={`header-nav-link ${isNosotros ? 'is-active' : ''}`}>nosotros,</a>
+              <a href="/portfolio" class={`header-nav-link ${isPortfolio ? 'is-active' : ''}`}>portfolio</a>
         </nav>
         <div class="header-actions">
-            <span class="header-time">8 nov, 10:12 p. m.</span>
-            <button class="header-button"> Book a Call </button>
+            <time class="header-time" datetime={iso}>{displayTime}</time>
         </div>
     </div>
 </header>
+
+<script>
+    if (typeof window !== 'undefined') {
+        const updateActive = () => {
+            const p = window.location.pathname;
+            const links = document.querySelectorAll('.header-nav-link');
+            links.forEach((a) => a.classList.remove('is-active'));
+            const homeLink = document.querySelector('.header-nav-link[href="/"]') as HTMLElement | null;
+            const nosotrosLink = document.querySelector('.header-nav-link[href="/nosotros"]') as HTMLElement | null;
+            const portfolioLink = document.querySelector('.header-nav-link[href="/portfolio"]') as HTMLElement | null;
+            const isNos = p.startsWith('/nosotros');
+            const isPort = p.startsWith('/portfolio');
+            const isHome = p === '/' || (!isNos && !isPort);
+            if (isHome && homeLink) homeLink.classList.add('is-active');
+            if (isNos && nosotrosLink) nosotrosLink.classList.add('is-active');
+            if (isPort && portfolioLink) portfolioLink.classList.add('is-active');
+        };
+        document.addEventListener('astro:page-load', updateActive);
+        document.addEventListener('astro:after-swap', updateActive);
+        if (document.readyState === 'complete') updateActive();
+    }
+</script>
